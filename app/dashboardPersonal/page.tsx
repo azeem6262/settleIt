@@ -1,0 +1,166 @@
+"use client";
+
+import React, { useEffect, useState } from "react";
+import Navbar from "../components/Navbar";
+import { useSession } from "next-auth/react";
+import { Input } from "../components/ui/Inputs";
+import { Button } from "../components/ui/Button";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+
+export default function DashboardPage() {
+  type Group = {
+    _id: string;
+    name: string;
+    members: string[];
+    code: string;
+  };
+
+  const { data: session, status } = useSession();
+  const [groupName, setGroupName] = useState("");
+  const [joinCode, setJoinCode] = useState("");
+  const [groups, setGroups] = useState<Group[]>([]);
+  const router = useRouter();
+
+  // Fetch groups on load
+  useEffect(() => {
+    if (session?.user.id) {
+      fetch(`/api/user/groups/${session.user.id}`)
+        .then((res) => res.json())
+        .then((data) => {
+          console.log("Fetched groups:", data);
+          setGroups(data || []);
+        })
+        .catch((err) => console.error("Error fetching groups:", err));
+    }
+  }, [session]);
+
+  if (status === "loading") return <p>Loading...</p>;
+  if (!session) return <p>Please log in to view dashboard</p>;
+
+  const user = session.user;
+
+  const handleCreateGroup = async () => {
+    if (!groupName.trim()) return toast.error("Enter group name");
+
+    const res = await fetch("/api/group/create", {
+      method: "POST",
+      body: JSON.stringify({
+        name: groupName,
+        userId: session.user.id,
+      }),
+      headers: { "Content-Type": "application/json" },
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      toast.success(`Created group "${data.name}"`);
+      setGroups((prev) => [...prev, data]);
+      setGroupName("");
+    } else {
+      toast.error(data.message || "Failed to create group");
+    }
+  };
+
+  const handleJoinGroup = async () => {
+    if (!joinCode.trim()) return toast.error("Enter join code");
+
+    const res = await fetch("/api/group/join", {
+      method: "POST",
+      body: JSON.stringify({
+        code: joinCode,
+        userId: session.user.id,
+      }),
+      headers: { "Content-Type": "application/json" },
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      toast.success(`Joined group "${data.name}"`);
+      setGroups((prev) => [...prev, data]);
+      setJoinCode("");
+    } else {
+      toast.error(data.message || "Failed to join group");
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-zinc-200 text-zinc-900">
+      <Navbar />
+      <div className="p-6 max-w-4xl mx-auto">
+        {/* Welcome Header */}
+        <h1 className="text-2xl font-bold mb-6">
+          Welcome, {user?.name || "User"}!
+        </h1>
+
+        {/* Group Actions */}
+        <div className="grid md:grid-cols-2 gap-6 mb-10">
+          {/* Create Group */}
+          <div className="bg-white rounded shadow p-4">
+            <h2 className="font-semibold mb-2">Create a Group</h2>
+            <Input
+              placeholder="Group name"
+              value={groupName}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setGroupName(e.target.value)
+              }
+              className="mb-2"
+            />
+            <Button onClick={handleCreateGroup}>Create</Button>
+          </div>
+
+          {/* Join Group */}
+          <div className="bg-white rounded shadow p-4">
+            <h2 className="font-semibold mb-2">Join a Group</h2>
+            <Input
+              placeholder="Group code"
+              value={joinCode}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setJoinCode(e.target.value)
+              }
+              className="mb-2"
+            />
+            <Button onClick={handleJoinGroup}>Join</Button>
+          </div>
+        </div>
+
+        {/* Group List */}
+        <div className="mb-8">
+          <h2 className="text-xl font-semibold mb-2">Your Groups</h2>
+          {groups.length > 0 ? (
+            <ul className="space-y-2">
+              {groups.map((group: Group) => (
+                <li
+                  key={group._id}
+                  className="bg-white rounded shadow p-3 flex justify-between items-center hover:bg-gray-50 transition cursor-pointer"
+                  onClick={() => router.push(`/groups/${group._id}`)}
+                >
+                  <span>
+                    <strong>{group.name}</strong>{" "}
+                    <span className="text-sm text-gray-500">
+                      ({group.code})
+                    </span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="bg-white p-4 rounded shadow">
+              <p>You are not part of any groups yet.</p>
+            </div>
+          )}
+        </div>
+
+        {/* Alerts */}
+        <div>
+          <h2 className="text-xl font-semibold mb-2">Pending Payments</h2>
+          <div className="bg-white p-4 rounded shadow">
+            <p>No pending payments.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

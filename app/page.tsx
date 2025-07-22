@@ -1,103 +1,158 @@
-import Image from "next/image";
+"use client";
+import { motion } from "framer-motion";
+import Navbar from "@/app/components/Navbar";
+import { useEffect, useState } from "react";
+import { signIn } from "next-auth/react";
+
+const slides = [
+  {
+    title: "Split expenses without friction",
+    description: "Track shared costs with friends, roommates, or teams.",
+    image: "/banner1.jpg",
+  },
+  {
+    title: "Know who owes whom — instantly",
+    description: "We handle the math. You stay focused on life.",
+    image: "/banner2.jpg",
+  },
+  {
+    title: "Settle up in one tap",
+    description: "Mark payments done and keep your group clear.",
+    image: "/banner3.jpg",
+  },
+];
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [currentSlide, setCurrentSlide] = useState(0);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % slides.length);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <div className="bg-zinc-100 text-zinc-900 min-h-screen">
+      <Navbar />
+
+      {/* Hero Section / Slideshow */}
+      <section className="relative h-[480px] overflow-hidden">
+      {slides.map((slide, index) => (
+      <motion.div
+      key={index}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: currentSlide === index ? 1 : 0 }}
+      transition={{ duration: 0.8 }}
+      className="absolute inset-0 transition-opacity duration-1000 ease-in-out"
+      >
+      {/* Background image */}
+      <div
+        className="absolute inset-0 bg-cover bg-center"
+        style={{ backgroundImage: `url(${slide.image})`, zIndex: 10 }}
+      />
+      {/* Overlay */}
+      <div className="absolute inset-0 bg-zinc-900 bg-opacity-50" />
+      {/* Text content */}
+      <div className="relative z-20 backdrop-blur-sm bg-zinc-100/10 flex flex-col items-center justify-center h-full text-center px-4 text-zinc-100">
+        <h1 className="text-4xl md:text-5xl font-semibold mb-4">{slide.title}</h1>
+        <p className="text-lg max-w-xl">{slide.description}</p>
+      </div>
+      </motion.div>
+      ))}
+      </section>
+
+
+      {/* Features Section */}
+<section className="py-20 px-6 max-w-7xl mx-auto">
+  <motion.h2
+    initial={{ opacity: 0, y: 10 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.5 }}
+    className="text-4xl font-bold text-center text-zinc-800 mb-12"
+  >
+    Powerful Simplicity
+  </motion.h2>
+  <div className="grid md:grid-cols-3 gap-8">
+    {[
+      {
+        title: "Add Expenses",
+        desc: "Split bills and purchases fairly among friends or roommates with just a few clicks.",
+        icon: "➕",
+      },
+      {
+        title: "Track Balances",
+        desc: "View real-time balance sheets and a breakdown of who owes whom.",
+        icon: "📊",
+      },
+      {
+        title: "Settle Payments",
+        desc: "Instantly mark payments as settled to keep everything up-to-date.",
+        icon: "✅",
+      },
+    ].map((feature, i) => (
+      <motion.div
+        key={i}
+        whileHover={{ y: -4 }}
+        transition={{ type: "spring", stiffness: 200 }}
+        className="bg-zinc-100 p-8 rounded-2xl shadow-md border border-zinc-200 hover:shadow-lg"
+      >
+        <div className="text-5xl mb-6">{feature.icon}</div>
+        <h3 className="text-2xl font-semibold mb-3 text-zinc-800">{feature.title}</h3>
+        <p className="text-zinc-600">{feature.desc}</p>
+      </motion.div>
+    ))}
+  </div>
+</section>
+
+{/* CTA Section */}
+<section className="py-20 bg-zinc-900 text-zinc-100 text-center px-6">
+  <motion.h2
+    initial={{ opacity: 0, y: 20 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.6 }}
+    className="text-4xl font-bold mb-4"
+  >
+    Start Splitting Smarter
+  </motion.h2>
+  <p className="text-zinc-400 max-w-xl mx-auto mb-8">
+    Create a group, track expenses, and settle balances effortlessly — all in one place.
+  </p>
+  <button
+    onClick={()=> signIn("google", { callbackUrl: "/dashboardPersonal" })}
+    className="inline-block px-6 py-3 rounded-xl bg-zinc-100 text-zinc-900 font-semibold hover:bg-zinc-300 transition"
+  >
+    Sign In with Google
+  </button>
+</section>
+
+{/* Footer */}
+<footer className="bg-zinc-100 text-zinc-600 border-t border-zinc-200 py-10 px-6">
+  <div className="max-w-7xl mx-auto grid md:grid-cols-3 gap-6 text-sm">
+    <div>
+      <h3 className="font-semibold text-zinc-800 mb-2">About</h3>
+      <p>
+        settleIt is a modern tool for students to manage shared expenses and settle up easily with minimum fuss.
+      </p>
+    </div>
+    <div>
+      <h3 className="font-semibold text-zinc-800 mb-2">Quick Links</h3>
+      <ul className="space-y-1">
+        <li><a href="/" className="hover:text-zinc-800">Home</a></li>
+        <li><a href="/dashboard" className="hover:text-zinc-800">Dashboard</a></li>
+        <li><a href="/groups" className="hover:text-zinc-800">Groups</a></li>
+      </ul>
+    </div>
+    <div>
+      <h3 className="font-semibold text-zinc-800 mb-2">Contact</h3>
+      <p>Email: support@settleIt.app</p>
+    </div>
+  </div>
+  <div className="text-center text-xs mt-8 text-zinc-400">
+    &copy; {new Date().getFullYear()} settleIt. All rights reserved.
+  </div>
+</footer>
+
     </div>
   );
 }
