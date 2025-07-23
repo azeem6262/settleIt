@@ -24,6 +24,11 @@ const expenseSchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
+    type: {
+      type: String,
+      enum: ['Meals & Dining', 'Stationary & Supplies', 'Academic & Work Essentials', 'Group Outings & Activities', 'Other'],
+      required: true,
+    }
   },
   { timestamps: true }
 );

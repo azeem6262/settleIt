@@ -52,7 +52,7 @@ function Navbar() {
           <>
             <button
               onClick={() => signOut({callbackUrl: "/"})}
-              className="text-zinc-200 hover:text-red-500"
+              className="text-zinc-200 text-[20px] font-bold hover:text-red-500"
             >
               Log out
             </button>

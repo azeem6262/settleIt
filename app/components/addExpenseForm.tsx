@@ -5,6 +5,7 @@ interface AddExpenseFormProps {
   groupId: string;
   members: { _id: string; name: string }[]; // Passed from parent/group dashboard
   currentUserId: string;
+  type: string;
   onExpenseAdded: () => void; // ✅ Added callback prop
 }
 
@@ -16,6 +17,7 @@ export default function AddExpenseForm({
 }: AddExpenseFormProps) {
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
+  const [type, setType] = useState("Other");
   const [splitAmong, setSplitAmong] = useState<string[]>(
     members.map((m) => m._id)
   );
@@ -31,6 +33,7 @@ export default function AddExpenseForm({
         amount: parseFloat(amount),
         paidBy: currentUserId,
         splitAmong,
+        type,
       }),
     });
 
@@ -38,6 +41,7 @@ export default function AddExpenseForm({
       setDescription("");
       setAmount("");
       alert("Expense added successfully!");
+      setType("Other");
       onExpenseAdded(); // ✅ Trigger refresh in parent
     } else {
       const errorText = await res.text();
@@ -75,6 +79,20 @@ export default function AddExpenseForm({
         required
         className="w-full mb-3 px-3 py-2 border rounded"
       />
+       <div className="mb-3">
+        <label className="block mb-1 font-medium">Expense Type</label>
+        <select
+          value={type}
+          onChange={(e) => setType(e.target.value)}
+          className="w-full px-3 py-2 border rounded"
+        >
+          <option value="Meals & Dining">Meals & Dining</option>
+          <option value="Stationary & Supplies">Stationary & Supplies</option>
+          <option value="Academic & Work Essesntials">Academic & Work Essesntials</option>
+          <option value="Group Outings & Activities">Group Outings & Activities</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
 
       <div className="mb-3">
         <label className="font-medium">Split between:</label>
@@ -94,7 +112,7 @@ export default function AddExpenseForm({
 
       <button
         type="submit"
-        className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
+        className="w-full bg-zinc-900 text-white py-2 rounded hover:bg-zinc-700 cursor-pointer"
       >
         Add Expense
       </button>

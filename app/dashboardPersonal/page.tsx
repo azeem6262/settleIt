@@ -7,6 +7,7 @@ import { Input } from "../components/ui/Inputs";
 import { Button } from "../components/ui/Button";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import ExpensePieChart from "../components/expenseChart1";
 
 export default function DashboardPage() {
   type Group = {
@@ -87,13 +88,15 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-200 text-zinc-900">
+    <div className="min-h-screen bg-zinc-100 text-zinc-900">
       <Navbar />
       <div className="p-6 max-w-4xl mx-auto">
         {/* Welcome Header */}
         <h1 className="text-2xl font-bold mb-6">
           Welcome, {user?.name || "User"}!
         </h1>
+        <p className="text-xl font-medium">Here you can create or join new groups with your friends.</p>
+        <p className="text-xl font-light mb-6"><a className="font-medium">settleIt</a> makes sure that you can have fun without worrying much about calculating the expenses every now and then as it will do it for you!</p>
 
         {/* Group Actions */}
         <div className="grid md:grid-cols-2 gap-6 mb-10">
@@ -153,12 +156,11 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* Alerts */}
+        {/* Chart */}
         <div>
-          <h2 className="text-xl font-semibold mb-2">Pending Payments</h2>
-          <div className="bg-white p-4 rounded shadow">
-            <p>No pending payments.</p>
-          </div>
+          <h1 className="text-2xl font-bold mb-6">Know what you're spending on</h1>
+          <p className="text-xl font-light mb-6">A very well curated summary of your spendings across groups.</p>
+          <ExpensePieChart />
         </div>
       </div>
     </div>

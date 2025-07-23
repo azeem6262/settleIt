@@ -6,7 +6,7 @@ import Expense from "@/app/models/Expense";
 
 export async function POST(req: Request) {
   await connectToDB();
-  const { groupId, description, amount, paidBy, splitAmong } = await req.json();
+  const { groupId, description, amount, paidBy, splitAmong, type } = await req.json();
   const parsedSplitAmong = splitAmong.map((id: string) => new mongoose.Types.ObjectId(id));
   try {
     const newExpense = await Expense.create({
@@ -15,6 +15,7 @@ export async function POST(req: Request) {
         amount,
         paidBy: new mongoose.Types.ObjectId(paidBy),
         splitAmong: parsedSplitAmong,
+        type,
     });
     console.log("✅ Created Expense:", newExpense);
 

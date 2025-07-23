@@ -14,6 +14,7 @@ type Expense = {
   description: string;
   splitAmong: Member[];
   createdAt: string;
+  type: string
 };
 
 type GroupData = {
@@ -48,7 +49,7 @@ export default function GroupDashboard() {
     try {
       const res = await fetch(`/api/groups/${groupId}/expenses`);
       const data = await res.json();
-      console.log("Fetched Expenses:", data); // <-- Add this
+      console.log("Fetched Expenses:", data); //remove
       setExpenses(data);
     } catch (err) {
       console.error("Failed to fetch expenses:", err);
@@ -190,38 +191,47 @@ export default function GroupDashboard() {
     return <p>Group not found or not logged in.</p>;
 
   return (
-    <div className="p-4 space-y-6">
-      <h1 className="text-xl font-bold">{groupData.name} Dashboard</h1>
+    <div className="ml-4 flex flex-col space-y-6 max-w-2xl w-full">
+  <h1 className="text-4xl font-bold text-gray-800">{groupData.name}</h1>
 
-      <AddExpenseForm
-        groupId={groupData._id}
-        members={groupData.members}
-        currentUserId={session.user.id}
-        onExpenseAdded={fetchExpenses}
-      />
+  <div className="bg-white shadow-lg rounded-lg p-5">
+    <AddExpenseForm
+      groupId={groupData._id}
+      members={groupData.members}
+      currentUserId={session.user.id}
+      type="Other"
+      onExpenseAdded={fetchExpenses}
+    />
+  </div>
 
-      <div className="mt-6">
-        <h2 className="text-lg font-semibold mb-2">Expenses</h2>
-        {expenses.length === 0 ? (
-          <p className="text-gray-600">No expenses added yet.</p>
-        ) : (
-          <ul className="space-y-3">
-            {expenses.map((expense) => (
-              <li key={expense._id} className="p-3 border rounded bg-white shadow-sm">
-                <p className="font-medium">
-                  {expense.paidBy.name} paid ₹{expense.amount.toFixed(2)}
-                </p>
-                <p className="text-sm text-gray-600 italic">"{expense.description}"</p>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+  <div className="bg-white shadow-lg rounded-lg p-5">
+    <h2 className="text-xl font-semibold text-gray-700 mb-3">Expenses</h2>
+    {expenses.length === 0 ? (
+      <p className="text-gray-500 italic">No expenses added yet.</p>
+    ) : (
+      <ul className="space-y-4">
+        {expenses.map((expense) => (
+          <li
+            key={expense._id}
+            className="p-4 border border-gray-200 rounded-lg bg-gray-50 hover:bg-gray-100 transition"
+          >
+            <p className="text-gray-800 font-medium">
+              {expense.paidBy.name} paid ₹{expense.amount.toFixed(2)}
+            </p>
+            <p className="text-sm text-gray-600 italic mt-1">
+              "{expense.description}"
+            </p>
+          </li>
+        ))}
+      </ul>
+    )}
+  </div>
 
-      <div className="mt-6">
-        <h2 className="text-lg font-semibold mb-2">Who Owes Whom</h2>
-        {renderBalances()}
-      </div>
-    </div>
+  <div className="bg-white shadow-lg rounded-lg p-5">
+    <h2 className="text-xl font-semibold text-gray-700 mb-3">Who Owes Whom</h2>
+    {renderBalances()}
+  </div>
+</div>
+
   );
 }
