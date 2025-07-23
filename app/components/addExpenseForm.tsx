@@ -88,7 +88,7 @@ export default function AddExpenseForm({
         >
           <option value="Meals & Dining">Meals & Dining</option>
           <option value="Stationary & Supplies">Stationary & Supplies</option>
-          <option value="Academic & Work Essesntials">Academic & Work Essesntials</option>
+          <option value="Academic & Work Essentials">Academic & Work Essentials</option>
           <option value="Group Outings & Activities">Group Outings & Activities</option>
           <option value="Other">Other</option>
         </select>
