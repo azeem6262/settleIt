@@ -8,6 +8,7 @@ import { Button } from "../components/ui/Button";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import ExpensePieChart from "../components/expenseChart1";
+import { LoaderCircle } from "lucide-react";
 
 export default function DashboardPage() {
   type Group = {
@@ -36,7 +37,7 @@ export default function DashboardPage() {
     }
   }, [session]);
 
-  if (status === "loading") return <p>Loading...</p>;
+  if (status === "loading") return <div><LoaderCircle /></div>;
   if (!session) return <p>Please log in to view dashboard</p>;
 
   const user = session.user;

@@ -1,18 +1,23 @@
 import { connectToDB } from "@/app/lib/mongoose";
 import Expense from "@/app/models/Expense";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
 export async function GET(
-  req: Request,
+  _req: Request,
   context: { params: { groupId: string } }
 ) {
-  const { params } = context;
-  await connectToDB();
+  try {
+    const { groupId } = context.params;
 
-  const expenses = await Expense.find({ groupId: params.groupId })
-    .populate("paidBy")
-    .populate("splitAmong");
+    await connectToDB();
 
-  return NextResponse.json(expenses);
+    const expenses = await Expense.find({ groupId })
+      .populate("paidBy")
+      .populate("splitAmong");
+
+    return NextResponse.json(expenses);
+  } catch (error) {
+    console.error("Error fetching expenses:", error);
+    return NextResponse.json({ message: "Server error" }, { status: 500 });
+  }
 }
-

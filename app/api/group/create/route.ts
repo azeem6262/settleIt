@@ -38,7 +38,7 @@ export async function POST(req: Request) {
   try {
     await connectToDB();
 
-    const body = await req.json(); // ✅ This is crucial
+    const body = await req.json(); 
     const { name, userId } = body;
 
     if (!name || !userId) {

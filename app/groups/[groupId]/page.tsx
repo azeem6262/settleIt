@@ -1,11 +1,18 @@
+//group dashboard
 "use client";
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import AddExpenseForm from "@/app/components/addExpenseForm";
+import { LoaderCircle } from "lucide-react";
+import Navbar from "@/app/components/Navbar";
 
-type Member = { _id: string; name: string; email: string };
+type Member = { 
+  _id: string; 
+  name: string; 
+  email: string 
+};
 type Expense = {
   _id: string;
   groupId: string;
@@ -174,11 +181,11 @@ export default function GroupDashboard() {
           if (!fromUser || !toUser) return null;
 
           return (
-            <li className = 'flex items-center' key={key}>
-              <span className="font-medium mr-2">{fromUser.name}</span> owes
-              <span className="font-medium ml-2 mr-2">{toUser.name}</span> ₹
-              {amount.toFixed(2)}
-              <button onClick={()=>handleSettle(toId, amount)} className="py-1 px-2 ml-8 bg-zinc-800 rounded-2xl cursor-pointer text-white">Settle</button>
+            <li className = 'flex items-center whitespace-nowrap' key={key}>
+              <span className="font-medium text-[12px] md:text-xl mr-2">{fromUser.name} owes</span>
+              <span className="font-medium text-[12px] md:text-xl mr-2">{toUser.name} ₹{amount.toFixed(2)}</span> 
+          
+              <button onClick={()=>handleSettle(toId, amount)} className="p-1 md:py-1 md:px-3 hover:bg-zinc-700 ml-2 md:ml-8 bg-zinc-800 rounded-[5px] cursor-pointer text-white md:text-xl text-[12px]">Settle</button>
             </li>
           );
         })}
@@ -186,23 +193,24 @@ export default function GroupDashboard() {
     );
   };
 
-  if (loading || status === "loading") return <p>Loading...</p>;
+  if (loading || status === "loading") return <div className="flex items-center"><LoaderCircle /></div>;
   if (!groupData || !session?.user?.id)
     return <p>Group not found or not logged in.</p>;
 
   return (
-    <div className="ml-4 flex flex-col space-y-6 max-w-2xl w-full">
-  <h1 className="text-4xl font-bold text-gray-800">{groupData.name}</h1>
+    <div className="flex flex-col space-y-6 w-full">
+      <Navbar />
+      <h1 className="text-4xl font-bold text-gray-800">{groupData.name}</h1>
 
-  <div className="bg-white shadow-lg rounded-lg p-5">
-    <AddExpenseForm
-      groupId={groupData._id}
-      members={groupData.members}
-      currentUserId={session.user.id}
-      type="Other"
-      onExpenseAdded={fetchExpenses}
-    />
-  </div>
+      <div className="bg-white shadow-lg rounded-lg p-5">
+        <AddExpenseForm
+          groupId={groupData._id}
+          members={groupData.members}
+          currentUserId={session.user.id}
+          type="Other"
+          onExpenseAdded={fetchExpenses}
+        />
+      </div>
 
   <div className="bg-white shadow-lg rounded-lg p-5">
     <h2 className="text-xl font-semibold text-gray-700 mb-3">Expenses</h2>

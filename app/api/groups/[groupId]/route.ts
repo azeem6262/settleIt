@@ -4,11 +4,12 @@ import { NextResponse } from "next/server";
 
 export async function GET(
   req: Request,
-  { params }: { params: { groupId: string } }
+  context: { params: { groupId: string } } // ✅ use `context`, not direct destructuring
 ) {
   try {
     await connectToDB();
-    const group = await Group.findById(params.groupId).populate("members");
+    const group = await Group.findById(context.params.groupId).populate("members");
+
     if (!group) {
       return NextResponse.json({ message: "Group not found" }, { status: 404 });
     }

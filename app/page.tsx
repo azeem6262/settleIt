@@ -33,126 +33,78 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="bg-zinc-100 text-zinc-900 min-h-screen">
-      <Navbar />
+    <div className="bg-zinc-100 text-zinc-900 min-h-screen flex flex-col">
+  <Navbar />
 
-      {/* Hero Section / Slideshow */}
-      <section className="relative h-[480px] overflow-hidden">
+  {/* Hero Section */}
+  <div className="flex flex-col md:flex-row mt-8 px-2 gap-4">
+    {/* Slideshow */}
+    <section className="relative w-full md:w-2/3 rounded-2xl overflow-hidden aspect-video md:aspect-auto h-[300px] md:h-[480px]">
       {slides.map((slide, index) => (
-      <motion.div
-      key={index}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: currentSlide === index ? 1 : 0 }}
-      transition={{ duration: 0.8 }}
-      className="absolute inset-0 transition-opacity duration-1000 ease-in-out"
-      >
-      {/* Background image */}
-      <div
-        className="absolute inset-0 bg-cover bg-center"
-        style={{ backgroundImage: `url(${slide.image})`, zIndex: 10 }}
-      />
-      {/* Overlay */}
-      <div className="absolute inset-0 bg-zinc-900 bg-opacity-50" />
-      {/* Text content */}
-      <div className="relative z-20 backdrop-blur-sm bg-zinc-100/10 flex flex-col items-center justify-center h-full text-center px-4 text-zinc-100">
-        <h1 className="text-4xl md:text-5xl font-semibold mb-4">{slide.title}</h1>
-        <p className="text-lg max-w-xl">{slide.description}</p>
-      </div>
-      </motion.div>
+        <motion.div
+          key={index}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: currentSlide === index ? 1 : 0 }}
+          transition={{ duration: 0.8 }}
+          className="absolute inset-0 transition-opacity duration-1000 ease-in-out"
+        >
+          <div
+            className="absolute inset-0 bg-cover bg-center"
+            style={{ backgroundImage: `url(${slide.image})`, zIndex: 10 }}
+          />
+          <div className="absolute inset-0 bg-zinc-900 bg-opacity-50" />
+          <div className="relative z-20 backdrop-blur-sm bg-zinc-100/10 flex flex-col items-center justify-center h-full text-center px-4 text-zinc-100">
+            <h1 className="text-2xl sm:text-4xl md:text-5xl font-semibold mb-4">
+              {slide.title}
+            </h1>
+            <p className="text-sm sm:text-lg max-w-xl">{slide.description}</p>
+          </div>
+        </motion.div>
       ))}
-      </section>
+    </section>
 
-
-      {/* Features Section */}
-<section className="py-20 px-6 max-w-7xl mx-auto">
-  <motion.h2
-    initial={{ opacity: 0, y: 10 }}
-    whileInView={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.5 }}
-    className="text-4xl font-bold text-center text-zinc-800 mb-12"
-  >
-    Powerful Simplicity
-  </motion.h2>
-  <div className="grid md:grid-cols-3 gap-8">
-    {[
-      {
-        title: "Add Expenses",
-        desc: "Split bills and purchases fairly among friends or roommates with just a few clicks.",
-        icon: "➕",
-      },
-      {
-        title: "Track Balances",
-        desc: "View real-time balance sheets and a breakdown of who owes whom.",
-        icon: "📊",
-      },
-      {
-        title: "Settle Payments",
-        desc: "Instantly mark payments as settled to keep everything up-to-date.",
-        icon: "✅",
-      },
-    ].map((feature, i) => (
-      <motion.div
-        key={i}
-        whileHover={{ y: -4 }}
-        transition={{ type: "spring", stiffness: 200 }}
-        className="bg-zinc-100 p-8 rounded-2xl shadow-md border border-zinc-200 hover:shadow-lg"
+    {/* CTA Section */}
+    <section className="w-full md:w-1/3 bg-zinc-900 text-zinc-100 rounded-2xl py-12 px-6 flex flex-col justify-center items-center text-center">
+      <motion.h2
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4"
       >
-        <div className="text-5xl mb-6">{feature.icon}</div>
-        <h3 className="text-2xl font-semibold mb-3 text-zinc-800">{feature.title}</h3>
-        <p className="text-zinc-600">{feature.desc}</p>
-      </motion.div>
-    ))}
-  </div>
-</section>
-
-{/* CTA Section */}
-<section className="py-20 bg-zinc-900 text-zinc-100 text-center px-6">
-  <motion.h2
-    initial={{ opacity: 0, y: 20 }}
-    whileInView={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.6 }}
-    className="text-4xl font-bold mb-4"
-  >
-    Start Splitting Smarter
-  </motion.h2>
-  <p className="text-zinc-400 max-w-xl mx-auto mb-8">
-    Create a group, track expenses, and settle balances effortlessly — all in one place.
-  </p>
-  <button
-    onClick={()=> signIn("google", { callbackUrl: "/dashboardPersonal" })}
-    className="inline-block px-6 py-3 rounded-xl bg-zinc-100 text-zinc-900 font-semibold hover:bg-zinc-300 transition"
-  >
-    Sign In with Google
-  </button>
-</section>
-
-{/* Footer */}
-<footer className="bg-zinc-100 text-zinc-600 border-t border-zinc-200 py-10 px-6">
-  <div className="max-w-7xl mx-auto grid md:grid-cols-3 gap-6 text-sm">
-    <div>
-      <h3 className="font-semibold text-zinc-800 mb-2">About</h3>
-      <p>
-        settleIt is a modern tool for students to manage shared expenses and settle up easily with minimum fuss.
+        Start Splitting Smarter
+      </motion.h2>
+      <p className="text-sm sm:text-base text-zinc-400 max-w-md mb-6">
+        Create a group, track expenses, and settle balances effortlessly — all in one place.
       </p>
-    </div>
-    <div>
-      <h3 className="font-semibold text-zinc-800 mb-2">Quick Links</h3>
-      <ul className="space-y-1">
-        <li><a href="/" className="hover:text-zinc-800">Home</a></li>
-        <li><a href="/dashboard" className="hover:text-zinc-800">Dashboard</a></li>
-        <li><a href="/groups" className="hover:text-zinc-800">Groups</a></li>
-      </ul>
-    </div>
-    <div>
-      <h3 className="font-semibold text-zinc-800 mb-2">Contact</h3>
-      <p>Email: support@settleIt.app</p>
-    </div>
+      <button
+        onClick={() => signIn("google", { callbackUrl: "/dashboardPersonal" })}
+        className="px-6 py-3 rounded-xl bg-zinc-100 text-zinc-900 font-semibold hover:bg-zinc-300 transition text-sm sm:text-base"
+      >
+        Sign In with Google
+      </button>
+    </section>
   </div>
-  <div className="text-center text-xs mt-8 text-zinc-400">
-    &copy; {new Date().getFullYear()} settleIt. All rights reserved.
-  </div>
-</footer>
 
+  {/* Footer */}
+  <footer className="bg-zinc-100 text-zinc-600 border-t border-zinc-200 py-10 px-6 mt-12">
+    <div className="max-w-7xl mx-auto grid gap-8 md:grid-cols-3 text-sm">
+      <div>
+        <h3 className="font-semibold text-zinc-800 mb-2">About</h3>
+        <p>
+          settleIt is a modern tool for students to manage shared expenses and settle up easily with minimum fuss.
+        </p>
+      </div>
+      
+      <div>
+        <h3 className="font-semibold text-zinc-800 mb-2">Contact</h3>
+        <p>Email: support@settleIt.app</p>
+      </div>
     </div>
+    <div className="text-center text-xs mt-8 text-zinc-400">
+      &copy; {new Date().getFullYear()} settleIt. All rights reserved.
+    </div>
+  </footer>
+</div>
+
   );
 }
