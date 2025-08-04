@@ -1,14 +1,20 @@
 import { connectToDB } from "@/app/lib/mongoose";
 import { Group } from "@/app/models/groups";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+
+interface RouteParams {
+  params: Promise<{ groupId: string }>;
+}
 
 export async function GET(
-  req: Request,
-  context: { params: { groupId: string } } // ✅ use `context`, not direct destructuring
+  request: NextRequest,
+  { params }: RouteParams
 ) {
   try {
+    const { groupId } = await params;
+    
     await connectToDB();
-    const group = await Group.findById(context.params.groupId).populate("members");
+    const group = await Group.findById(groupId).populate("members");
 
     if (!group) {
       return NextResponse.json({ message: "Group not found" }, { status: 404 });
