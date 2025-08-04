@@ -1,9 +1,9 @@
-import NextAuth, { NextAuthOptions } from "next-auth";
+import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { MongoDBAdapter } from "@next-auth/mongodb-adapter";
 import clientPromise from "@/app/lib/mongodb";
 
-export const authOptions: NextAuthOptions = {
+const handler = NextAuth({
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -14,7 +14,6 @@ export const authOptions: NextAuthOptions = {
     databaseName: "college-expense-splitter",
   }),
   secret: process.env.NEXTAUTH_SECRET,
-
   callbacks: {
     async session({ session, user }) {
       if (session?.user) {
@@ -23,8 +22,6 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
   },
-};
+});
 
-
-const handler = NextAuth(authOptions);
-export { handler as GET, handler as POST };
+export { handler as GET, handler as POST }; 

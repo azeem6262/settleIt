@@ -23,7 +23,7 @@ function Navbar() {
         </div>
 
         {/* Auth Buttons */}
-        <div className="mt-3 sm:mt-0 flex items-center justify-start sm:justify-end space-x-3 ml-auto mb-2">
+        <div className="sm:mt-0 flex items-center justify-start sm:justify-end space-x-3 ml-auto">
           {!isLoggedIn ? (
             <>
               {/* Register/Login links  */}
@@ -39,11 +39,11 @@ function Navbar() {
             ))}
             */}
               
-              <button
-                className="text-md sm:text-sm px-3 py-2 text-white rounded-full transition whitespace-nowrap"
+              <h1
+                className="md:text-5xl font-bold sm:text-4xl py-2 text-white transition whitespace-nowrap"
               >
                 settleIt
-              </button>
+              </h1>
             </>
           ) : (
             <>
