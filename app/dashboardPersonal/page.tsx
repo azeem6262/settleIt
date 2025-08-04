@@ -159,7 +159,7 @@ export default function DashboardPage() {
 
         {/* Chart */}
         <div>
-          <h1 className="text-2xl font-bold mb-6">Know what you're spending on</h1>
+          <h1 className="text-2xl font-bold mb-6">Know what you&apos;re spending on</h1>
           <p className="text-xl font-light mb-6">A very well curated summary of your spendings across groups.</p>
           <ExpensePieChart />
         </div>

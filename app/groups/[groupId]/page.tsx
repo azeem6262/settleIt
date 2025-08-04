@@ -1,7 +1,7 @@
 //group dashboard
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import AddExpenseForm from "@/app/components/addExpenseForm";
@@ -41,7 +41,7 @@ export default function GroupDashboard() {
   const [loading, setLoading] = useState(true);
   const [settlements, setSettlements] = useState<{ from: string; to: string; amount: number }[]>([]);
 
-  const fetchGroupData = async () => {
+  const fetchGroupData = useCallback(async () => {
     try {
       const res = await fetch(`/api/groups/${groupId}`);
       const data = await res.json();
@@ -50,9 +50,9 @@ export default function GroupDashboard() {
     } catch (err) {
       console.error("Failed to fetch group:", err);
     }
-  };
+  }, [groupId]);
 
-  const fetchExpenses = async () => {
+  const fetchExpenses = useCallback(async () => {
     try {
       const res = await fetch(`/api/groups/${groupId}/expenses`);
       const data = await res.json();
@@ -61,19 +61,23 @@ export default function GroupDashboard() {
     } catch (err) {
       console.error("Failed to fetch expenses:", err);
     }
-  };
-  const fetchSettlements = async () => {
+  }, [groupId]);
+  const fetchSettlements = useCallback(async () => {
   const res = await fetch(`/api/groups/${groupId}/settlements`);
   const data = await res.json();
   setSettlements(data);
-};
+}, [groupId]); 
+
   useEffect(() => {
-    if (groupId) {
-      fetchGroupData();
-      fetchExpenses();
-      fetchSettlements();
-    }
-  }, [groupId]);
+    const fetchData = async () => {
+      if (groupId) {
+        fetchGroupData();
+        fetchExpenses();
+        fetchSettlements();
+      }
+    };
+    fetchData();
+  }, [groupId, fetchGroupData, fetchExpenses, fetchSettlements]);
 
   const computeBalances = () => {
   const netBalance = new Map<string, number>(); // key: userId, value: net balance (positive means others owe them)
@@ -227,7 +231,7 @@ export default function GroupDashboard() {
               {expense.paidBy.name} paid ₹{expense.amount.toFixed(2)}
             </p>
             <p className="text-sm text-gray-600 italic mt-1">
-              "{expense.description}"
+              &quot;{expense.description}&quot;
             </p>
           </li>
         ))}

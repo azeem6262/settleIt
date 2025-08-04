@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { User } from "@/app/models/user";
 import { connectToDB } from "@/app/lib/mongoose";
 import { Group } from "@/app/models/groups";
 import mongoose from "mongoose";

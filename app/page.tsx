@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import Navbar from "@/app/components/Navbar";
 import { useEffect, useState } from "react";
 import { signIn } from "next-auth/react";
+import Image from "next/image";
 
 const slides = [
   {
@@ -74,7 +75,7 @@ export default function Home() {
         Start Splitting Smarter
       </motion.h2>
       <p className="text-sm sm:text-base text-zinc-400 max-w-md mb-6">
-        Create a group, track expenses, and settle balances effortlessly — all in one place.
+        Create a group, track expenses, and settle balances effortlessly all in one place.
       </p>
       <button
         onClick={() => signIn("google", { callbackUrl: "/dashboardPersonal" })}
@@ -82,10 +83,12 @@ export default function Home() {
       >
         Sign In with Google
       </button>
-      <img
+      <Image
           src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
           alt="Google"
           className="w-5 h-5 sm:w-6 sm:h-6 mt-5"
+          width={30}
+          height={30}
       />
     </section>
   </div>

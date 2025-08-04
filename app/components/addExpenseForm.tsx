@@ -6,7 +6,7 @@ interface AddExpenseFormProps {
   members: { _id: string; name: string }[]; // Passed from parent/group dashboard
   currentUserId: string;
   type: string;
-  onExpenseAdded: () => void; // ✅ Added callback prop
+  onExpenseAdded: () => void; 
 }
 
 export default function AddExpenseForm({
@@ -42,7 +42,7 @@ export default function AddExpenseForm({
       setAmount("");
       alert("Expense added successfully!");
       setType("Other");
-      onExpenseAdded(); // ✅ Trigger refresh in parent
+      onExpenseAdded(); 
     } else {
       const errorText = await res.text();
       console.error("Failed to add expense:", errorText);

@@ -11,7 +11,7 @@ export async function GET(
     const { groupId } = context.params;
     const settlements = await Settlement.find({ groupId });
     return NextResponse.json(settlements);
-  } catch (err) {
+  } catch {
     return new NextResponse("Failed to fetch settlements", { status: 500 });
   }
 }
