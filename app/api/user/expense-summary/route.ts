@@ -2,29 +2,25 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/lib/auth";
 import Expense from "@/app/models/Expense";
 import { connectToDB } from "@/app/lib/mongoose";
-import { User } from "@/app/models/user";
+import { NextResponse } from "next/server";
+
 export async function GET() {
-  await connectToDB();
-  const session = await getServerSession(authOptions);
-
-  if (!session || !session.user?.email) {
-    return Response.json({}, { status: 401 });
-  }
-
-  const userEmail = session.user.email;
-
   try {
-    // Get user's ID from the User model if needed
-    const user = await User.findOne({ email: userEmail });
-    if (!user) {
-      return Response.json({}, { status: 404 });
+    await connectToDB();
+    const session = await getServerSession(authOptions);
+
+    if (!session || !session.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Now you can directly use session.user.id (which is the MongoDB _id)
+    const userId = session.user.id;
+
     const summary = await Expense.aggregate([
-      { $match: { paidBy: user._id } }, // filter only user's expenses
+      { $match: { paidBy: userId } }, // Use the ID directly from session
       {
         $group: {
-          _id: "$type", // group by type: 'Food', 'Outings', etc.
+          _id: "$type",
           total: { $sum: "$amount" },
         },
       },
@@ -35,9 +31,9 @@ export async function GET() {
       return acc;
     }, {} as Record<string, number>);
 
-    return Response.json(formatted);
+    return NextResponse.json(formatted);
   } catch (err) {
     console.error("Aggregation error:", err);
-    return Response.json({}, { status: 500 });
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
