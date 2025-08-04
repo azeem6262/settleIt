@@ -1,24 +1,23 @@
-import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/lib/auth";
-import { cookies, headers } from "next/headers";
+import { getServerSession } from "next-auth/next";
 import { connectToDB } from "@/app/lib/mongoose";
 import Expense from "@/app/models/Expense";
-// helper to extract request/response for App Router
 import { NextRequest, NextResponse } from "next/server";
+import { User } from "@/app/models/user";
 
 export async function GET(req: NextRequest) {
   try {
-    // Construct the request and response objects manually
-    const session = await getServerSession({ req, res: null, ...authOptions });
+    const session = await getServerSession(authOptions);
 
-    if (!session || !session.user?.id) {
+    console.log("SESSION:", session); // ✅ Log it on Vercel
+
+    if (!session || !session.user?.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     await connectToDB();
 
-    const user = await Expense.db.model("User").findOne({ email: session.user.email });
-
+    const user = await User.findOne({ email: session.user.email });
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
