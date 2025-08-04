@@ -2,13 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectToDB } from "@/app/lib/mongoose";
 import Settlement from "@/app/models/Settlement";
 
+interface RouteParams {
+  params: Promise<{ groupId: string }>;
+}
+
 export async function GET(
-  req: NextRequest,
-  context: { params: { groupId: string } }
+  request: NextRequest,
+  { params }: RouteParams
 ) {
   try {
+    const { groupId } = await params;
+    
     await connectToDB();
-    const { groupId } = context.params;
     const settlements = await Settlement.find({ groupId });
     return NextResponse.json(settlements);
   } catch {
