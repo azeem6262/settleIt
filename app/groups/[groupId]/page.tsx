@@ -200,7 +200,7 @@ export default function GroupDashboard() {
   return (
     <div className="flex flex-col space-y-6 w-full">
       <Navbar />
-      <h1 className="text-4xl font-bold text-gray-800">{groupData.name}</h1>
+      <h1 className="text-4xl ml-5 font-bold text-gray-800">{groupData.name}</h1>
 
       <div className="bg-white shadow-lg rounded-lg p-5">
         <AddExpenseForm

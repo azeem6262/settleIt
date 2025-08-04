@@ -38,33 +38,26 @@ function Navbar() {
               </Link>
             ))}
             */}
-              <img
-                src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
-                alt="Google"
-                className="w-5 h-5 sm:w-6 sm:h-6"
-              />
-
               
               <button
-                onClick={() => signIn("google", { callbackUrl: "/dashboardPersonal" })}
-                className="text-sm sm:text-base px-3 py-2 text-white rounded-full hover:text-black hover:bg-zinc-100 transition whitespace-nowrap"
+                className="text-md sm:text-sm px-3 py-2 text-white rounded-full transition whitespace-nowrap"
               >
-                Sign in with Google
+                settleIt
               </button>
             </>
           ) : (
             <>
               <button
                 onClick={() => signOut({ callbackUrl: "/" })}
-                className="text-zinc-200 text-sm sm:text-base font-semibold hover:text-red-500"
+                className="text-zinc-200 text-md sm:text-base font-bold hover:text-red-500"
               >
-                Log out
+                Sign Out
               </button>
               <Image
                 src={session.user.image}
                 alt="Profile"
-                width={32}
-                height={32}
+                width={28}
+                height={28}
                 className="rounded-full hover:opacity-80"
               />
             </>
