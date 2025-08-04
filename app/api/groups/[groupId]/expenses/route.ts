@@ -1,14 +1,19 @@
+// app/api/groups/[groupId]/expenses/route.ts
+
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDB } from "@/app/lib/mongoose";
 import Expense from "@/app/models/Expense";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { groupId: string } }
+  context: { params: { groupId: string } }
 ) {
   try {
+    const groupId = context.params.groupId;
+
     await connectToDB();
-    const expenses = await Expense.find({ groupId: params.groupId })
+
+    const expenses = await Expense.find({ groupId })
       .populate("paidBy")
       .populate("splitAmong");
 
