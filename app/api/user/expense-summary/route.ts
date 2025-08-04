@@ -1,5 +1,5 @@
 import { getServerSession } from "next-auth";
-import { authOptions } from "../../auth/[...nextauth]/route";
+import { authOptions } from "@/app/lib/auth";
 import Expense from "@/app/models/Expense";
 import { connectToDB } from "@/app/lib/mongoose";
 import { User } from "@/app/models/user";

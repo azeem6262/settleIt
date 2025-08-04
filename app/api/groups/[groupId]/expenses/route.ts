@@ -1,13 +1,14 @@
 import { connectToDB } from "@/app/lib/mongoose";
 import Expense from "@/app/models/Expense";
 import { NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 
 export async function GET(
-  _req: Request,
-  context: { params: { groupId: string } }
+  _req: NextRequest,
+  { params }: { params: { groupId: string } }
 ) {
   try {
-    const { groupId } = context.params;
+    const { groupId } = params;
 
     await connectToDB();
 
