@@ -9,21 +9,36 @@ export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
-    console.log("SESSION:", session); // ✅ Log it on Vercel
+    console.log("SESSION:", session);
+    console.log("SESSION USER:", session?.user);
+    console.log("SESSION USER EMAIL:", session?.user?.email);
+    console.log("SESSION USER ID:", session?.user?.id);
 
     if (!session || !session.user?.email) {
+      console.log("No session or email found");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     await connectToDB();
 
     const user = await User.findOne({ email: session.user.email });
+    console.log("Found user:", user);
+    
     if (!user) {
+      console.log("User not found in database");
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
+    // Use the user ID from session if available, otherwise from database
+    const userId = session.user.id || user._id.toString();
+    console.log("Using userId for query:", userId);
+
+    // Check if expenses exist for this user
+    const expenseCount = await Expense.countDocuments({ paidBy: userId });
+    console.log("Total expenses for user:", expenseCount);
+
     const summary = await Expense.aggregate([
-      { $match: { paidBy: user._id.toString() } },
+      { $match: { paidBy: userId } },
       {
         $group: {
           _id: "$type",
@@ -31,6 +46,8 @@ export async function GET(req: NextRequest) {
         },
       },
     ]);
+
+    console.log("Aggregation result:", summary);
 
     const formatted = summary.reduce((acc, item) => {
       acc[item._id] = item.total;
