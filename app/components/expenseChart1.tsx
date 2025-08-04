@@ -20,43 +20,68 @@ export default function ExpensePieChart() {
 
   useEffect(() => {
     const fetchSummary = async () => {
+      console.log("=== DEBUG INFO ===");
+      console.log("Session status:", status);
+      console.log("Session data:", session);
+      console.log("Session user:", session?.user);
+      console.log("Session user email:", session?.user?.email);
+      console.log("Session user id:", session?.user?.id);
+
       // Only fetch if user is authenticated
-      if (status === "loading") return; // Still loading session
+      if (status === "loading") {
+        console.log("Session still loading, waiting...");
+        return;
+      }
       
       if (status === "unauthenticated" || !session) {
+        console.log("User not authenticated");
         setLoading(false);
         setError("Please sign in to view your expenses");
         return;
       }
 
-      try {
-        const res = await fetch("/api/user/expense-summary", {
-          method: "GET",
-          credentials: "include",
-        });
+      if (status === "authenticated" && session) {
+        console.log("User authenticated, making API call...");
+        
+        try {
+          const res = await fetch("/api/user/expense-summary", {
+            method: "GET",
+            credentials: "include",
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
 
-        if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`);
+          console.log("Response status:", res.status);
+          console.log("Response headers:", Object.fromEntries(res.headers.entries()));
+
+          const data = await res.json();
+          console.log("Response data:", data);
+
+          if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}, data: ${JSON.stringify(data)}`);
+          }
+
+          setSummary(data);
+          setError(null);
+        } catch (error) {
+          if(error instanceof Error){
+          console.error("Failed to fetch summary:", error);
+          setError(`Failed to load expense data: ${error.message}`);}
+        } finally {
+          setLoading(false);
         }
-
-        const data = await res.json();
-        console.log("Fetched Summary:", data);
-        setSummary(data);
-        setError(null);
-      } catch (error) {
-        console.error("Failed to fetch summary:", error);
-        setError("Failed to load expense data");
-      } finally {
-        setLoading(false);
       }
     };
 
     fetchSummary();
-  }, [session, status]); // Add session and status as dependencies
+  }, [session, status]);
 
   // Show loading while session is being fetched
   if (status === "loading") {
-    return <p>Loading...</p>;
+    return <div className="max-w-md mx-auto p-4 bg-white rounded-lg shadow-md">
+      <p>Loading session...</p>
+    </div>;
   }
 
   // Show sign-in message if not authenticated
@@ -70,7 +95,9 @@ export default function ExpensePieChart() {
 
   // Show loading while fetching data
   if (loading) {
-    return <p>Loading chart...</p>;
+    return <div className="max-w-md mx-auto p-4 bg-white rounded-lg shadow-md">
+      <p>Loading chart data...</p>
+    </div>;
   }
 
   // Show error message
@@ -78,6 +105,12 @@ export default function ExpensePieChart() {
     return (
       <div className="max-w-md mx-auto p-4 bg-white rounded-lg shadow-md">
         <p className="text-center text-red-500">{error}</p>
+        <div className="mt-4 text-xs text-gray-500">
+          <p>Debug info:</p>
+          <p>Status: {status}</p>
+          <p>Has session: {session ? 'Yes' : 'No'}</p>
+          <p>User email: {session?.user?.email || 'N/A'}</p>
+        </div>
       </div>
     );
   }
@@ -87,6 +120,10 @@ export default function ExpensePieChart() {
     return (
       <div className="max-w-md mx-auto p-4 bg-white rounded-lg shadow-md">
         <p className="text-center">No expense data available</p>
+        <div className="mt-4 text-xs text-gray-500">
+          <p>Session status: {status}</p>
+          <p>User: {session?.user?.email}</p>
+        </div>
       </div>
     );
   }
