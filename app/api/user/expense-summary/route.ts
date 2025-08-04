@@ -1,23 +1,28 @@
-import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/lib/auth";
-import Expense from "@/app/models/Expense";
+import { getServerSession } from "next-auth";
 import { connectToDB } from "@/app/lib/mongoose";
-import { NextResponse } from "next/server";
+import Expense from "@/app/models/Expense";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    await connectToDB();
+    // Get session
     const session = await getServerSession(authOptions);
 
-    if (!session || !session.user?.id) {
+    if (!session || !session.user?.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Now you can directly use session.user.id (which is the MongoDB _id)
-    const userId = session.user.id;
+    await connectToDB();
+
+    // Get user's MongoDB _id
+    const user = await Expense.db.model("User").findOne({ email: session.user.email });
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
 
     const summary = await Expense.aggregate([
-      { $match: { paidBy: userId } }, // Use the ID directly from session
+      { $match: { paidBy: user._id.toString() } },
       {
         $group: {
           _id: "$type",
