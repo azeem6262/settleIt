@@ -1,10 +1,9 @@
 import { connectToDB } from "@/app/lib/mongoose";
 import Expense from "@/app/models/Expense";
-import { NextResponse } from "next/server";
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: { groupId: string } }
 ) {
   try {
