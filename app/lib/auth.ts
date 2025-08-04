@@ -10,72 +10,70 @@ export const authOptions: AuthOptions = {
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
   ],
-  
+
   callbacks: {
-    async signIn({ user, account, profile }) {
+    async signIn({ user }) {
       try {
         await connectToDB();
-        
+
         // Check if user already exists
         const existingUser = await User.findOne({ email: user.email });
-        
+
         if (!existingUser) {
-          // Create new user if doesn't exist
+          // Create new user
           await User.create({
             email: user.email,
             name: user.name,
             image: user.image,
           });
         }
-        
+
         return true;
       } catch (error) {
         console.error("Error in signIn callback:", error);
         return false;
       }
     },
-    
+
+    async jwt({ token, user }) {
+      try {
+        if (user) {
+          await connectToDB();
+          const dbUser = await User.findOne({ email: user.email });
+
+          if (dbUser) {
+            token.id = dbUser._id.toString(); // Attach MongoDB _id to token
+          }
+        }
+
+        return token;
+      } catch (error) {
+        console.error("Error in jwt callback:", error);
+        return token;
+      }
+    },
+
     async session({ session, token }) {
       try {
-        await connectToDB();
-        
-        // Get user from database to include the MongoDB _id
-        const dbUser = await User.findOne({ email: session.user?.email });
-        
-        if (dbUser) {
-          session.user.id = dbUser._id.toString();
+        if (token?.id && session.user) {
+          session.user.id = token.id as string;
         }
-        
+
         return session;
       } catch (error) {
         console.error("Error in session callback:", error);
         return session;
       }
     },
-    
-    async jwt({ token, user }) {
-      if (user) {
-        try {
-          await connectToDB();
-          const dbUser = await User.findOne({ email: user.email });
-          if (dbUser) {
-            token.id = dbUser._id.toString();
-          }
-        } catch (error) {
-          console.error("Error in jwt callback:", error);
-        }
-      }
-      return token;
-    },
   },
-  
+
   session: {
     strategy: "jwt",
   },
-  
+
   pages: {
-    signIn: "/auth/signin", // Optional: custom sign-in page
+    signIn: "/auth/signin", // Optional custom sign-in page
   },
-  
+
   secret: process.env.NEXTAUTH_SECRET,
 };
