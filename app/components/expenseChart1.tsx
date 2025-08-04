@@ -18,7 +18,10 @@ export default function ExpensePieChart() {
   useEffect(() => {
     const fetchSummary = async () => {
       try {
-        const res = await fetch("/api/user/expense-summary");
+        const res = await fetch("/api/user/expense-summary", {
+          method: "GET",
+          credentials: "include",
+        });
         const data = await res.json();
         console.log("Fetched Summary:", data)
         setSummary(data);
