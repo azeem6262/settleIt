@@ -1,22 +1,24 @@
+import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/lib/auth";
-import { getServerSession } from "next-auth";
+import { cookies, headers } from "next/headers";
 import { connectToDB } from "@/app/lib/mongoose";
 import Expense from "@/app/models/Expense";
+// helper to extract request/response for App Router
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
   try {
-    // Get session
-    const session = await getServerSession(authOptions);
+    // Construct the request and response objects manually
+    const session = await getServerSession({ req, res: null, ...authOptions });
 
-    if (!session || !session.user?.email) {
+    if (!session || !session.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     await connectToDB();
 
-    // Get user's MongoDB _id
     const user = await Expense.db.model("User").findOne({ email: session.user.email });
+
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
