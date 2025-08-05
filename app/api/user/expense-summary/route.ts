@@ -45,7 +45,7 @@ export async function GET(req: NextRequest) {
     console.log("Total expenses for user:", expenseCount);
 
     const summary = await Expense.aggregate([
-      { $match: { paidBy: userId } },
+      { $match: { paidBy:  { $oid: userId } } },
       {
         $group: {
           _id: "$type",
