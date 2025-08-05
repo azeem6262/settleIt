@@ -66,8 +66,10 @@ export const authOptions: AuthOptions = {
 
           if (dbUser) {
             token.id = dbUser._id.toString(); // Attach MongoDB _id to token
-            token.email = user.email; // Ensure email is in token
+          } else {
+            token.id = user.id;
           }
+          token.email = user.email; // Ensure email is in token
         }
 
         return token;
@@ -80,8 +82,8 @@ export const authOptions: AuthOptions = {
 
     async session({ session, token }) {
       try {
-        if (token?.id && session.user) {
-          session.user.id = token.id as string;
+        if (session.user) {
+          session.user.id = (token.id || session.user.id) as string;
         }
 
         return session;
