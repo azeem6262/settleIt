@@ -29,9 +29,16 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Use the user ID from session if available, otherwise from database
-    const userId = session.user.id || user._id.toString();
-    console.log("Using userId for query:", userId);
+    // Use the user ID from session if available
+    let userId = session.user.id;
+
+    // If the user ID is not in the session, get it from the database
+    if (!userId) {
+      userId = user._id.toString();
+      console.log("User ID not found in session, fetching from database:", userId);
+    } else {
+      console.log("Using userId from session:", userId);
+    }
 
     // Check if expenses exist for this user
     const expenseCount = await Expense.countDocuments({ paidBy: userId });
