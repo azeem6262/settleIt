@@ -48,6 +48,12 @@ export const authOptions: AuthOptions = {
 
     async jwt({ token, user }) {
       try {
+        // If there's a JWT decode error, start fresh
+        if (!token || Object.keys(token).length === 0) {
+          console.log("Starting fresh JWT token");
+          token = {};
+        }
+
         if (user) {
           // Skip database operations during build
           if (!process.env.MONGODB_URI) {
@@ -60,13 +66,15 @@ export const authOptions: AuthOptions = {
 
           if (dbUser) {
             token.id = dbUser._id.toString(); // Attach MongoDB _id to token
+            token.email = user.email; // Ensure email is in token
           }
         }
 
         return token;
       } catch (error) {
-        console.error("Error in jwt callback:", error);
-        return token;
+        console.error("Error in jwt callback, starting fresh:", error);
+        // Return minimal token on error
+        return user ? { email: user.email } : {};
       }
     },
 
@@ -110,9 +118,9 @@ export const authOptions: AuthOptions = {
   // Enable debug in development
   debug: process.env.NODE_ENV === "development",
   
-  // Force session refresh by changing session max age temporarily
+  
   session: {
     strategy: "jwt",
-    maxAge: 1, // 1 second - forces immediate re-authentication
+    
   },
 };
