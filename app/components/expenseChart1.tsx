@@ -59,6 +59,7 @@ export default function ExpensePieChart() {
           console.log("Response data:", data);
 
           if (!res.ok) {
+            console.error("HTTP error! status:", res.status, "data:", data);
             throw new Error(`HTTP error! status: ${res.status}, data: ${JSON.stringify(data)}`);
           }
 

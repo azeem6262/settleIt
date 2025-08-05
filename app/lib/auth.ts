@@ -3,9 +3,9 @@ import { AuthOptions } from "next-auth";
 import { connectToDB } from "./mongoose";
 import { User } from "@/app/models/user";
 
-// Ensure NEXTAUTH_SECRET exists (but allow build-time to pass)
-if (!process.env.NEXTAUTH_SECRET && process.env.NODE_ENV === 'production' && process.env.VERCEL_ENV === 'production') {
-  throw new Error('NEXTAUTH_SECRET environment variable is required');
+// Simplified environment check
+if (!process.env.NEXTAUTH_SECRET && process.env.NODE_ENV === 'production') {
+  console.error('NEXTAUTH_SECRET is missing in production');
 }
 
 export const authOptions: AuthOptions = {
@@ -46,13 +46,12 @@ export const authOptions: AuthOptions = {
       }
     },
 
+    // UPDATED JWT CALLBACK - Replace your existing one with this:
     async jwt({ token, user }) {
       try {
-        // If there's a JWT decode error, start fresh
-        if (!token || Object.keys(token).length === 0) {
-          console.log("Starting fresh JWT token");
-          token = {};
-        }
+        // Add debug logging
+        console.log("JWT callback - incoming token:", JSON.stringify(token, null, 2));
+        console.log("JWT callback - user:", JSON.stringify(user, null, 2));
 
         if (user) {
           // Skip database operations during build
@@ -65,23 +64,26 @@ export const authOptions: AuthOptions = {
           const dbUser = await User.findOne({ email: user.email });
 
           if (dbUser) {
-            token.id = dbUser._id.toString(); // Attach MongoDB _id to token
-          } else {
-            token.id = user.id;
+            token.id = dbUser._id.toString();
           }
-          token.email = user.email; // Ensure email is in token
+          token.email = user.email;
         }
 
         return token;
       } catch (error) {
-        console.error("Error in jwt callback, starting fresh:", error);
-        // Return minimal token on error
-        return user ? { email: user.email } : {};
+        console.error("Error in jwt callback:", error);
+        // Don't return incomplete tokens - let NextAuth handle the error
+        throw error;
       }
     },
 
+    // UPDATED SESSION CALLBACK - Replace your existing one with this:
     async session({ session, token }) {
       try {
+        // Add debug logging
+        console.log("Session callback - token:", JSON.stringify(token, null, 2));
+        console.log("Session callback - session:", JSON.stringify(session, null, 2));
+
         if (session.user) {
           session.user.id = (token.id || session.user.id) as string;
         }
@@ -94,15 +96,23 @@ export const authOptions: AuthOptions = {
     },
   },
 
-  
-
   pages: {
-    signIn: "/auth/signin", // Optional custom sign-in page
+    signIn: "/auth/signin",
   },
 
   secret: process.env.NEXTAUTH_SECRET,
 
-  // Add these for better Vercel compatibility
+  // UPDATED SESSION AND JWT CONFIG - Add these sections:
+  session: {
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+  },
+
+  jwt: {
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+  },
+
+  // Keep your existing cookies config
   cookies: {
     sessionToken: {
       name: process.env.NODE_ENV === "production" 
@@ -119,10 +129,4 @@ export const authOptions: AuthOptions = {
 
   // Enable debug in development
   debug: process.env.NODE_ENV === "development",
-  
-  
-  session: {
-    strategy: "jwt",
-    
-  },
 };

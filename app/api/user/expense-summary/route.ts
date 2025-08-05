@@ -4,10 +4,20 @@ import { connectToDB } from "@/app/lib/mongoose";
 import Expense from "@/app/models/Expense";
 import { NextRequest, NextResponse } from "next/server";
 import { User } from "@/app/models/user";
+import mongoose from "mongoose";
 
 export async function GET(req: NextRequest) {
   try {
+    // ADD THIS: Better session debugging
+    console.log("Getting server session...");
     const session = await getServerSession(authOptions);
+    
+    console.log("Session result:", {
+      hasSession: !!session,
+      hasUser: !!session?.user,
+      hasEmail: !!session?.user?.email,
+      email: session?.user?.email
+    });
 
     if (!session || !session.user?.email) {
       console.log("No session or email found");
@@ -32,7 +42,7 @@ export async function GET(req: NextRequest) {
     console.log("Total expenses for user:", expenseCount);
 
     const summary = await Expense.aggregate([
-      { $match: { paidBy:  { $oid: userId } } },
+      { $match: { paidBy: new mongoose.Types.ObjectId(userId) } },
       {
         $group: {
           _id: "$type",
@@ -50,7 +60,21 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(formatted);
   } catch (err) {
-    console.error("Aggregation error:", err);
+    // UPDATED: Better error handling with proper type checking
+    console.error("API Route error:", err);
+    
+    // Check if it's a session-related error
+    if (err instanceof Error && (err.message.includes('JWT') || err.message.includes('JWE'))) {
+      console.error("Session/JWT error detected:", err.message);
+      return NextResponse.json({ error: "Session error - please sign in again" }, { status: 401 });
+    }
+    
+    // Handle string errors
+    if (typeof err === 'string' && (err.includes('JWT') || err.includes('JWE'))) {
+      console.error("Session/JWT string error detected:", err);
+      return NextResponse.json({ error: "Session error - please sign in again" }, { status: 401 });
+    }
+    
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
