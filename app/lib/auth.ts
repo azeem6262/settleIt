@@ -3,6 +3,11 @@ import { AuthOptions } from "next-auth";
 import { connectToDB } from "./mongoose";
 import { User } from "@/app/models/user";
 
+// Ensure NEXTAUTH_SECRET exists (but allow build-time to pass)
+if (!process.env.NEXTAUTH_SECRET && process.env.NODE_ENV === 'production' && process.env.VERCEL_ENV === 'production') {
+  throw new Error('NEXTAUTH_SECRET environment variable is required');
+}
+
 export const authOptions: AuthOptions = {
   providers: [
     GoogleProvider({
@@ -14,6 +19,12 @@ export const authOptions: AuthOptions = {
   callbacks: {
     async signIn({ user }) {
       try {
+        // Skip database operations during build
+        if (!process.env.MONGODB_URI) {
+          console.log("Skipping database operations during build");
+          return true;
+        }
+
         await connectToDB();
 
         // Check if user already exists
@@ -38,6 +49,12 @@ export const authOptions: AuthOptions = {
     async jwt({ token, user }) {
       try {
         if (user) {
+          // Skip database operations during build
+          if (!process.env.MONGODB_URI) {
+            console.log("Skipping database operations during build");
+            return token;
+          }
+
           await connectToDB();
           const dbUser = await User.findOne({ email: user.email });
 
@@ -67,9 +84,7 @@ export const authOptions: AuthOptions = {
     },
   },
 
-  session: {
-    strategy: "jwt",
-  },
+  
 
   pages: {
     signIn: "/auth/signin", // Optional custom sign-in page
@@ -77,7 +92,7 @@ export const authOptions: AuthOptions = {
 
   secret: process.env.NEXTAUTH_SECRET,
 
-  // Add these for Vercel deployment
+  // Add these for better Vercel compatibility
   cookies: {
     sessionToken: {
       name: process.env.NODE_ENV === "production" 
@@ -88,13 +103,16 @@ export const authOptions: AuthOptions = {
         sameSite: "lax",
         path: "/",
         secure: process.env.NODE_ENV === "production",
-        domain: process.env.NODE_ENV === "production" 
-          ? ".vercel.app" 
-          : undefined,
       },
     },
   },
 
-  // Enable debugging in production temporarily
+  // Enable debug in development
   debug: process.env.NODE_ENV === "development",
+  
+  // Force session refresh by changing session max age temporarily
+  session: {
+    strategy: "jwt",
+    maxAge: 1, // 1 second - forces immediate re-authentication
+  },
 };
