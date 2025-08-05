@@ -3,10 +3,13 @@ import { AuthOptions } from "next-auth";
 import { connectToDB } from "./mongoose";
 import { User } from "@/app/models/user";
 
-// Simplified environment check
-if (!process.env.NEXTAUTH_SECRET && process.env.NODE_ENV === 'production') {
-  console.error('NEXTAUTH_SECRET is missing in production');
+// CRITICAL: Check for NEXTAUTH_SECRET
+if (!process.env.NEXTAUTH_SECRET) {
+  console.error('❌ NEXTAUTH_SECRET is missing');
+  throw new Error('NEXTAUTH_SECRET must be set');
 }
+
+console.log('✅ NEXTAUTH_SECRET is present, length:', process.env.NEXTAUTH_SECRET.length);
 
 export const authOptions: AuthOptions = {
   providers: [
@@ -16,22 +19,32 @@ export const authOptions: AuthOptions = {
     }),
   ],
 
+  // CRITICAL: Set secret FIRST
+  secret: process.env.NEXTAUTH_SECRET,
+
+  // CRITICAL: Explicitly set session strategy
+  session: {
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+  },
+
+  // CRITICAL: Set JWT configuration
+  jwt: {
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+  },
+
   callbacks: {
     async signIn({ user }) {
       try {
-        // Skip database operations during build
         if (!process.env.MONGODB_URI) {
           console.log("Skipping database operations during build");
           return true;
         }
 
         await connectToDB();
-
-        // Check if user already exists
         const existingUser = await User.findOne({ email: user.email });
 
         if (!existingUser) {
-          // Create new user
           await User.create({
             email: user.email,
             name: user.name,
@@ -46,15 +59,11 @@ export const authOptions: AuthOptions = {
       }
     },
 
-    // UPDATED JWT CALLBACK - Replace your existing one with this:
     async jwt({ token, user }) {
+      console.log("JWT callback called - token exists:", !!token, "user exists:", !!user);
+      
       try {
-        // Add debug logging
-        console.log("JWT callback - incoming token:", JSON.stringify(token, null, 2));
-        console.log("JWT callback - user:", JSON.stringify(user, null, 2));
-
         if (user) {
-          // Skip database operations during build
           if (!process.env.MONGODB_URI) {
             console.log("Skipping database operations during build");
             return token;
@@ -69,25 +78,23 @@ export const authOptions: AuthOptions = {
           token.email = user.email;
         }
 
+        console.log("JWT callback returning token with keys:", Object.keys(token || {}));
         return token;
       } catch (error) {
         console.error("Error in jwt callback:", error);
-        // Don't return incomplete tokens - let NextAuth handle the error
         throw error;
       }
     },
 
-    // UPDATED SESSION CALLBACK - Replace your existing one with this:
     async session({ session, token }) {
+      console.log("Session callback called - token exists:", !!token, "session exists:", !!session);
+      
       try {
-        // Add debug logging
-        console.log("Session callback - token:", JSON.stringify(token, null, 2));
-        console.log("Session callback - session:", JSON.stringify(session, null, 2));
-
-        if (session.user) {
+        if (session.user && token) {
           session.user.id = (token.id || session.user.id) as string;
         }
 
+        console.log("Session callback returning session for user:", session?.user?.email);
         return session;
       } catch (error) {
         console.error("Error in session callback:", error);
@@ -100,33 +107,30 @@ export const authOptions: AuthOptions = {
     signIn: "/auth/signin",
   },
 
-  secret: process.env.NEXTAUTH_SECRET,
+  // Remove custom cookies configuration for now - let NextAuth use defaults
+  // cookies: {
+  //   sessionToken: {
+  //     name: process.env.NODE_ENV === "production" 
+  //       ? "__Secure-next-auth.session-token" 
+  //       : "next-auth.session-token",
+  //     options: {
+  //       httpOnly: true,
+  //       sameSite: "lax",
+  //       path: "/",
+  //       secure: process.env.NODE_ENV === "production",
+  //     },
+  //   },
+  // },
 
-  // UPDATED SESSION AND JWT CONFIG - Add these sections:
-  session: {
-    strategy: "jwt",
-    maxAge: 30 * 24 * 60 * 60, // 30 days
-  },
-
-  jwt: {
-    maxAge: 30 * 24 * 60 * 60, // 30 days
-  },
-
-  // Keep your existing cookies config
-  cookies: {
-    sessionToken: {
-      name: process.env.NODE_ENV === "production" 
-        ? "__Secure-next-auth.session-token" 
-        : "next-auth.session-token",
-      options: {
-        httpOnly: true,
-        sameSite: "lax",
-        path: "/",
-        secure: process.env.NODE_ENV === "production",
-      },
-    },
-  },
-
-  // Enable debug in development
   debug: process.env.NODE_ENV === "development",
+  
+  // Add events for debugging
+  events: {
+    async signIn({ user, account }) {
+      console.log("SignIn event:", { user: user?.email, account: account?.provider });
+    },
+    async session({ session }) {
+      console.log("Session event - user:", session?.user?.email);
+    }
+  }
 };
