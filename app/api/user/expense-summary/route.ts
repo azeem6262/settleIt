@@ -1,14 +1,11 @@
 import { authOptions } from "@/app/lib/auth";
 import { getServerSession } from "next-auth/next";
-import { connectToDB } from "@/app/lib/mongoose";
 import Expense from "@/app/models/Expense";
 import { NextRequest, NextResponse } from "next/server";
-import { User } from "@/app/models/user";
 import mongoose from "mongoose";
 
 export async function GET(req: NextRequest) {
   try {
-    // ADD THIS: Better session debugging
     console.log("Getting server session...");
     const session = await getServerSession(authOptions);
     
@@ -16,31 +13,34 @@ export async function GET(req: NextRequest) {
       hasSession: !!session,
       hasUser: !!session?.user,
       hasEmail: !!session?.user?.email,
-      email: session?.user?.email
+      hasId: !!session?.user?.id,
+      email: session?.user?.email,
+      id: session?.user?.id
     });
 
-    if (!session || !session.user?.email) {
-      console.log("No session or email found");
+    if (!session || !session.user?.email || !session.user?.id) {
+      console.log("No session, email, or user ID found");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    await connectToDB();
+    // IMPORTANT: With database strategy, session.user.id is the MongoDB ObjectId
+    // You don't need to query the User collection again!
+    const userId = session.user.id;
+    console.log("Using userId from session:", userId);
 
-    const user = await User.findOne({ email: session.user.email });
-    console.log("Found user:", user);
-
-    if (!user) {
-      console.log("User not found in database");
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    // Validate the ObjectId format
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      console.error("Invalid ObjectId format:", userId);
+      return NextResponse.json({ error: "Invalid user ID format" }, { status: 400 });
     }
 
-    const userId = user._id.toString();
-    console.log("Using userId from database:", userId);
-
     // Check if expenses exist for this user
-    const expenseCount = await Expense.countDocuments({ paidBy: userId });
+    const expenseCount = await Expense.countDocuments({ 
+      paidBy: new mongoose.Types.ObjectId(userId) 
+    });
     console.log("Total expenses for user:", expenseCount);
 
+    // Aggregate expenses by type
     const summary = await Expense.aggregate([
       { $match: { paidBy: new mongoose.Types.ObjectId(userId) } },
       {
@@ -59,20 +59,23 @@ export async function GET(req: NextRequest) {
     }, {} as Record<string, number>);
 
     return NextResponse.json(formatted);
+    
   } catch (err) {
-    // UPDATED: Better error handling with proper type checking
     console.error("API Route error:", err);
     
-    // Check if it's a session-related error
-    if (err instanceof Error && (err.message.includes('JWT') || err.message.includes('JWE'))) {
-      console.error("Session/JWT error detected:", err.message);
-      return NextResponse.json({ error: "Session error - please sign in again" }, { status: 401 });
-    }
-    
-    // Handle string errors
-    if (typeof err === 'string' && (err.includes('JWT') || err.includes('JWE'))) {
-      console.error("Session/JWT string error detected:", err);
-      return NextResponse.json({ error: "Session error - please sign in again" }, { status: 401 });
+    // Handle different types of errors
+    if (err instanceof Error) {
+      // Database connection errors
+      if (err.message.includes('MongooseError') || err.message.includes('MongoDB')) {
+        console.error("Database error:", err.message);
+        return NextResponse.json({ error: "Database connection error" }, { status: 503 });
+      }
+      
+      // Session/Auth errors  
+      if (err.message.includes('JWT') || err.message.includes('JWE') || err.message.includes('session')) {
+        console.error("Session error:", err.message);
+        return NextResponse.json({ error: "Session error - please sign in again" }, { status: 401 });
+      }
     }
     
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
