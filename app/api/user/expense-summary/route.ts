@@ -1,5 +1,6 @@
 import { authOptions } from "@/app/lib/auth";
 import { getServerSession } from "next-auth/next";
+import { connectToDB } from "@/app/lib/mongoose";
 import Expense from "@/app/models/Expense";
 import { NextRequest, NextResponse } from "next/server";
 import mongoose from "mongoose";
@@ -23,6 +24,9 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Connect to MongoDB for Expense queries
+    await connectToDB();
+    
     // IMPORTANT: With database strategy, session.user.id is the MongoDB ObjectId
     // You don't need to query the User collection again!
     const userId = session.user.id;
