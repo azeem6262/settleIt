@@ -22,9 +22,7 @@
     "paths": {
       "@/*": ["./*"]
     },
-    "types": [
-      "minimatch"
-    ]
+    
   },
   
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
