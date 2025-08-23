@@ -22,6 +22,12 @@
     "paths": {
       "@/*": ["./*"]
     },
+    "types": [
+      "node",
+      "react",
+      "jest",
+      "minimatch" 
+    ]
     
   },
   
