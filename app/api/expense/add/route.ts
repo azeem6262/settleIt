@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import { NextResponse } from "next/server";
 import { connectToDB } from "@/app/lib/mongoose";
 import Expense from "@/app/models/Expense";
-import { User } from "@/app/models/user";
+import { User } from "@/app/models/User";
 import webpush from "web-push";
 
 // --- FIX: Define a type for the expected request body ---

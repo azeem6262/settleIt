@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { connectToDB } from '@/app/lib/mongoose'; // Your Mongoose connection helper
-import { User } from '@/app/models/user';
+import { User } from '@/app/models/User';
 // 2. Remove the 'mongodb' import, it's not needed
 // import { ObjectId } from 'mongodb'; 
 

@@ -6,6 +6,7 @@ const userSchema = new mongoose.Schema({
   name: { type: String },
   role: { type: String, enum: ["student", "admin"], default: "student" },
   notificationSubscription: { type: Object },
+  upiId: { type: String, trim: true },
 });
 
 export const User = mongoose.models.User || mongoose.model("User", userSchema);

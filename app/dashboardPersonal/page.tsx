@@ -24,12 +24,11 @@ export default function DashboardPage() {
   const [groups, setGroups] = useState<Group[]>([]);
   const router = useRouter();
 
-  // --- MERGED NOTIFICATION STATE ---
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const [upiId, setUpiId] = useState("");
 
-  // --- MERGED: Check for existing subscription on load ---
+  // Check for existing subscription on load
   useEffect(() => {
-    // Ensure this only runs on the client
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
       navigator.serviceWorker.ready.then(reg => {
         reg.pushManager.getSubscription().then(sub => {
@@ -59,41 +58,31 @@ export default function DashboardPage() {
 
   const user = session.user;
 
-  // --- MERGED: Notification subscription logic ---
   const handleSubscribe = async () => {
     if (typeof window === 'undefined' || !('serviceWorker' in navigator) || !('PushManager' in window)) {
         toast.error("Push notifications are not supported by your browser.");
         return;
     }
-
     const permission = await Notification.requestPermission();
     if (permission !== 'granted') {
         toast.warning("Notification permission denied.");
         return;
     }
-
     const registration = await navigator.serviceWorker.register('/service-worker.js');
-    
-    // Get the key from environment variables
     const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
     if (!vapidPublicKey) {
         toast.error("Notification configuration is missing. Contact support.");
         return;
     }
-
-    // Subscribe to the Push Service
     const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: vapidPublicKey,
     });
-
-    // Send the subscription object to your backend to save it
     const res = await fetch('/api/save-subscription', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ subscription: subscription, userId: session.user.id }),
     });
-
     if (res.ok) {
         toast.success("Notifications enabled!");
         setIsSubscribed(true);
@@ -102,10 +91,28 @@ export default function DashboardPage() {
     }
   };
 
+  const handleSaveUpi = async () => {
+    // --- FIX: Added a loading toast for better UX ---
+    const promise = fetch('/api/user/update-upi', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ upiId }),
+    });
+
+    toast.promise(promise, {
+      loading: 'Saving UPI ID...',
+      success: (res) => {
+        if (!res.ok) throw new Error('Failed to save');
+        setUpiId(""); // --- FIX: Clear input field on success ---
+        return "UPI ID saved successfully!";
+      },
+      error: 'Failed to save UPI ID on server.',
+    });
+  };
+
 
   const handleCreateGroup = async () => {
     if (!groupName.trim()) return toast.error("Enter group name");
-
     const res = await fetch("/api/group/create", {
       method: "POST",
       body: JSON.stringify({
@@ -114,9 +121,7 @@ export default function DashboardPage() {
       }),
       headers: { "Content-Type": "application/json" },
     });
-
     const data = await res.json();
-
     if (res.ok) {
       toast.success(`Created group "${data.name}"`);
       setGroups((prev) => [...prev, data]);
@@ -128,7 +133,6 @@ export default function DashboardPage() {
 
   const handleJoinGroup = async () => {
     if (!joinCode.trim()) return toast.error("Enter join code");
-
     const res = await fetch("/api/group/join", {
       method: "POST",
       body: JSON.stringify({
@@ -137,9 +141,7 @@ export default function DashboardPage() {
       }),
       headers: { "Content-Type": "application/json" },
     });
-
     const data = await res.json();
-
     if (res.ok) {
       toast.success(`Joined group "${data.name}"`);
       setGroups((prev) => [...prev, data]);
@@ -160,7 +162,7 @@ export default function DashboardPage() {
         <p className="text-xl font-medium">Here you can create or join new groups with your friends.</p>
         <p className="text-xl font-light mb-6"><a className="font-medium">settleIt</a> makes sure that you can have fun without worrying much about calculating the expenses every now and then as it will do it for you!</p>
 
-      
+        {/* Notification Section */}
         <div className="bg-white rounded shadow p-4 mb-10">
           <div className="flex flex-col sm:flex-row justify-between sm:items-center">
             <div>
@@ -169,6 +171,26 @@ export default function DashboardPage() {
             </div>
             <Button onClick={handleSubscribe} disabled={isSubscribed} className="mt-3 sm:mt-0">
               {isSubscribed ? "Notifications Enabled" : "Enable Notifications"}
+            </Button>
+          </div>
+        </div>
+
+        {/* UPI ID Save Section */}
+        <div className="bg-white rounded shadow p-4 mb-10">
+          <div className="flex flex-col sm:flex-row justify-between sm:items-center">
+            <div>
+              <h2 className="font-semibold text-lg">Save your UPI ID</h2>
+              <p className="text-sm text-gray-600">We want to make your experience seamless and hassle free.</p>
+            </div>
+            <Input 
+                type="text" 
+                placeholder="Enter your UPI ID (e.g., username@okhdfcbank)"
+                value={upiId}
+                onChange={(e) => setUpiId(e.target.value)}
+                className="mt-3 sm:mt-0 sm:mx-2"
+            />
+            <Button onClick={handleSaveUpi} disabled={!upiId.trim()} className="mt-3 sm:mt-0">
+              Save UPI ID
             </Button>
           </div>
         </div>
@@ -231,14 +253,13 @@ export default function DashboardPage() {
           )}
         </div>
 
-     
+        {/* Chart */}
         <div>
           <h1 className="text-2xl font-bold mb-6">Know what you&apos;re spending on</h1>
           <p className="text-xl font-light mb-6">A very well curated summary of your spendings across groups.</p>
           <ExpensePieChart />
         </div>
         
-      
       </div>
     </div>
   );
