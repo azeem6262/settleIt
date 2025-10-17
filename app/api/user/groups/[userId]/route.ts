@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { connectToDB } from "@/app/lib/mongoose";
 import { Group } from "@/app/models/groups";
 import mongoose from "mongoose";
+import { User } from "@/app/models/user";
 interface RouteParams {
   params: Promise<{ userId: string }>;
 }
