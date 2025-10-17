@@ -24,6 +24,23 @@ export default function DashboardPage() {
   const [groups, setGroups] = useState<Group[]>([]);
   const router = useRouter();
 
+  // --- MERGED NOTIFICATION STATE ---
+  const [isSubscribed, setIsSubscribed] = useState(false);
+
+  // --- MERGED: Check for existing subscription on load ---
+  useEffect(() => {
+    // Ensure this only runs on the client
+    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+      navigator.serviceWorker.ready.then(reg => {
+        reg.pushManager.getSubscription().then(sub => {
+          if (sub) {
+            setIsSubscribed(true);
+          }
+        });
+      });
+    }
+  }, []);
+
   // Fetch groups on load
   useEffect(() => {
     if (session?.user.id) {
@@ -41,6 +58,50 @@ export default function DashboardPage() {
   if (!session) return <p>Please log in to view dashboard</p>;
 
   const user = session.user;
+
+  // --- MERGED: Notification subscription logic ---
+  const handleSubscribe = async () => {
+    if (typeof window === 'undefined' || !('serviceWorker' in navigator) || !('PushManager' in window)) {
+        toast.error("Push notifications are not supported by your browser.");
+        return;
+    }
+
+    const permission = await Notification.requestPermission();
+    if (permission !== 'granted') {
+        toast.warning("Notification permission denied.");
+        return;
+    }
+
+    const registration = await navigator.serviceWorker.register('/service-worker.js');
+    
+    // Get the key from environment variables
+    const vapidPublicKey = process.env.NEXT_VAPID_PUBLIC_KEY;
+    if (!vapidPublicKey) {
+        toast.error("Notification configuration is missing. Contact support.");
+        return;
+    }
+
+    // Subscribe to the Push Service
+    const subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: vapidPublicKey,
+    });
+
+    // Send the subscription object to your backend to save it
+    const res = await fetch('/api/save-subscription', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subscription: subscription, userId: session.user.id }),
+    });
+
+    if (res.ok) {
+        toast.success("Notifications enabled!");
+        setIsSubscribed(true);
+    } else {
+        toast.error("Failed to save subscription on server.");
+    }
+  };
+
 
   const handleCreateGroup = async () => {
     if (!groupName.trim()) return toast.error("Enter group name");
@@ -98,6 +159,19 @@ export default function DashboardPage() {
         </h1>
         <p className="text-xl font-medium">Here you can create or join new groups with your friends.</p>
         <p className="text-xl font-light mb-6"><a className="font-medium">settleIt</a> makes sure that you can have fun without worrying much about calculating the expenses every now and then as it will do it for you!</p>
+
+      
+        <div className="bg-white rounded shadow p-4 mb-10">
+          <div className="flex flex-col sm:flex-row justify-between sm:items-center">
+            <div>
+              <h2 className="font-semibold text-lg">Enable Notifications</h2>
+              <p className="text-sm text-gray-600">Get reminders for unsettled expenses even when the app is closed.</p>
+            </div>
+            <Button onClick={handleSubscribe} disabled={isSubscribed} className="mt-3 sm:mt-0">
+              {isSubscribed ? "Notifications Enabled" : "Enable Notifications"}
+            </Button>
+          </div>
+        </div>
 
         {/* Group Actions */}
         <div className="grid md:grid-cols-2 gap-6 mb-10">
@@ -157,12 +231,14 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* Chart */}
+     
         <div>
           <h1 className="text-2xl font-bold mb-6">Know what you&apos;re spending on</h1>
           <p className="text-xl font-light mb-6">A very well curated summary of your spendings across groups.</p>
           <ExpensePieChart />
         </div>
+        
+      
       </div>
     </div>
   );
