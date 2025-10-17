@@ -26,8 +26,8 @@ export async function GET(
     }
 
     return NextResponse.json(group);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error fetching group details:", error);
-    return NextResponse.json({ message: "Server error", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Server error", error: (error as Error).message }, { status: 500 });
   }
 }
