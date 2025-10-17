@@ -75,7 +75,7 @@ export default function DashboardPage() {
     const registration = await navigator.serviceWorker.register('/service-worker.js');
     
     // Get the key from environment variables
-    const vapidPublicKey = process.env.NEXT_VAPID_PUBLIC_KEY;
+    const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
     if (!vapidPublicKey) {
         toast.error("Notification configuration is missing. Contact support.");
         return;
@@ -88,7 +88,7 @@ export default function DashboardPage() {
     });
 
     // Send the subscription object to your backend to save it
-    const res = await fetch('/api/saveSubscription', {
+    const res = await fetch('/api/save-subscription', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ subscription: subscription, userId: session.user.id }),
