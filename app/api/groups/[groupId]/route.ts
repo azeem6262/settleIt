@@ -1,25 +1,22 @@
 import { connectToDB } from "@/app/lib/mongoose";
 import { Group } from "@/app/models/groups";
-import { User } from "@/app/models/User";
+import { User } from "@/app/models/User"; // Keep this import
 import { NextRequest, NextResponse } from "next/server";
 
-interface RouteParams {
-  params: { groupId: string }; // <-- Simpler type, no Promise needed
-}
+// Remove the separate RouteParams interface
 
 export async function GET(
   request: NextRequest,
-  { params }: RouteParams
+  { params }: { params: { groupId: string } } // <-- FIX: Type the argument inline
 ) {
   try {
-    const { groupId } = params; // <-- 'params' is already the object
+    const { groupId } = params; 
     
     await connectToDB();
 
-    // --- 2. UPDATE THE POPULATE QUERY ---
-    // Select only the fields you need from the members
+    // This populate query is correct and will fetch the 'upiId'
     const group = await Group.findById(groupId)
-      .populate("members", "name email upiId"); // <-- Specify fields here
+      .populate("members", "name email upiId");
 
     if (!group) {
       return NextResponse.json({ message: "Group not found" }, { status: 404 });
