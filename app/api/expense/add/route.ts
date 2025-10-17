@@ -59,7 +59,7 @@ export async function POST(req: Request) {
         if (user.notificationSubscription) {
           const payload = JSON.stringify({
             title: 'New Expense Added!',
-            body: `${payer.name} added a new expense: "${description}". You owe $${amountPerPerson}.`
+            body: `${payer.name} added a new expense: "${description}". You owe ₹${amountPerPerson}.`
           });
 
           try {
