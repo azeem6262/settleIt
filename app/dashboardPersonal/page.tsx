@@ -88,7 +88,7 @@ export default function DashboardPage() {
     });
 
     // Send the subscription object to your backend to save it
-    const res = await fetch('/api/save-subscription', {
+    const res = await fetch('/api/saveSubscription', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ subscription: subscription, userId: session.user.id }),
