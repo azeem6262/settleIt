@@ -3,28 +3,36 @@ import { Group } from "@/app/models/groups";
 import { User } from "@/app/models/User"; // Keep this import
 import { NextRequest, NextResponse } from "next/server";
 
-// Remove the separate RouteParams interface
+// --- FIX: Define a simple type for the context object ---
+type RouteContext = {
+  params: {
+    groupId: string;
+  };
+};
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { groupId: string } } // <-- FIX: Type the argument inline
+  context: RouteContext // --- FIX: Use the simple, non-destructured type here ---
 ) {
   try {
-    const { groupId } = params; 
+    const { groupId } = context.params; // <-- FIX: Destructure the groupId here
     
     await connectToDB();
 
-    // This populate query is correct and will fetch the 'upiId'
     const group = await Group.findById(groupId)
-      .populate("members", "name email upiId");
+      .populate("members", "name email upiId"); 
 
     if (!group) {
       return NextResponse.json({ message: "Group not found" }, { status: 404 });
     }
 
     return NextResponse.json(group);
-  } catch (error: unknown) {
+  } catch (error: unknown) { // Use 'unknown' for better type safety
     console.error("Error fetching group details:", error);
-    return NextResponse.json({ message: "Server error", error: (error as Error).message }, { status: 500 });
+    let errorMessage = "Server error";
+    if (error instanceof Error) {
+        errorMessage = error.message;
+    }
+    return NextResponse.json({ message: errorMessage }, { status: 500 });
   }
 }
