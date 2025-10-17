@@ -1,24 +1,24 @@
 import { connectToDB } from "@/app/lib/mongoose";
 import { Group } from "@/app/models/groups";
-import { User } from "@/app/models/User"; // Keep this import
+import { User } from "@/app/models/User"; // Keep this import for Mongoose
 import { NextRequest, NextResponse } from "next/server";
 
-// --- FIX: Define a simple type for the context object ---
-type RouteContext = {
-  params: {
-    groupId: string;
-  };
-};
+// Remove all separate interface or type definitions for the params
 
 export async function GET(
   request: NextRequest,
-  context: RouteContext // --- FIX: Use the simple, non-destructured type here ---
+  // --- THIS IS THE FIX ---
+  // We type the 'context' argument directly and inline.
+  // We do NOT destructure { params } here.
+  context: { params: { groupId: string } } 
 ) {
   try {
-    const { groupId } = context.params; // <-- FIX: Destructure the groupId here
+    // Destructure 'groupId' from 'context.params' inside the function
+    const { groupId } = context.params; 
     
     await connectToDB();
 
+    // This populate query is correct and will fetch the 'upiId'
     const group = await Group.findById(groupId)
       .populate("members", "name email upiId"); 
 
@@ -27,7 +27,7 @@ export async function GET(
     }
 
     return NextResponse.json(group);
-  } catch (error: unknown) { // Use 'unknown' for better type safety
+  } catch (error: unknown) {
     console.error("Error fetching group details:", error);
     let errorMessage = "Server error";
     if (error instanceof Error) {
