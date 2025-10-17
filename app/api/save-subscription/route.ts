@@ -19,12 +19,14 @@ export async function POST(request: Request) {
     
     // 3. Find the user by their ID and update their document
     //    We use the Mongoose 'User' model here, not the native 'db' object.
-    const result = await User.updateOne(
-      { _id: userId }, // Find the user by their NextAuth session 'id' (NOT _id)
-      { $set: { notificationSubscription: subscription } } // Set the new field
+    const updatedUser = await User.findByIdAndUpdate(
+        userId,
+        { $set: { notificationSubscription: subscription } },
+        { new: true }
+        // Set the new field
     );
 
-    if (result.modifiedCount === 0) {
+    if (updatedUser.modifiedCount === 0) {
       console.warn(`Could not find user with ID: ${userId} to save subscription.`);
     }
 

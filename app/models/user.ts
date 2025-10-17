@@ -5,7 +5,7 @@ const userSchema = new mongoose.Schema({
   password: { type: String, required: true }, // hashed password
   name: { type: String },
   role: { type: String, enum: ["student", "admin"], default: "student" },
-  notificationSubscription: { type: Object }
+  notificationSubscription: { type: Object },
 });
 
 export const User = mongoose.models.User || mongoose.model("User", userSchema);
