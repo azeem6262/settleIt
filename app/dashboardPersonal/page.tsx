@@ -53,7 +53,10 @@ export default function DashboardPage() {
     }
   }, [session]);
 
-  if (status === "loading") return <div><LoaderCircle /></div>;
+  if (status === "loading") return (
+    <div className="min-h-screen flex items-center justify-center">
+      <LoaderCircle className="animate-spin" size={48} /></div>
+  );
   if (!session) return <p>Please log in to view dashboard</p>;
 
   const user = session.user;
